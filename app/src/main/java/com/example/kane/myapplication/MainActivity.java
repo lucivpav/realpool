@@ -1,8 +1,12 @@
 package com.example.kane.myapplication;
 
-import android.app.Fragment;
+import android.app.SearchManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuInflater;
 
@@ -11,20 +15,16 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, JsonReceivedCommand {
 
     private GoogleMap mGoogleMap;
+    private Marker mFinishMarker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +39,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.mymenu, menu);
+
+
+        SearchView searchView =
+                (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener()
+        {
+            @Override
+            public boolean onQueryTextChange(String newText)
+            {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextSubmit(String query)
+            {
+                doMySearch(query);
+                return false;
+            }
+        });
         return true;
     }
 
@@ -46,10 +65,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap map)
     {
         mGoogleMap = map;
-        String address = "Bavorov";
-        String url = "https://maps.googleapis.com/maps/api/geocode/json?address="
-                + address + "&key=AIzaSyC2lGEulxqVNmD45HnLSQ0rg05wq7qUZjc";
-        new RetrieveJsonTask().execute(new RetrieveJsonParam(url, this));
     }
 
     public void jsonReceived(JSONObject object)
@@ -65,7 +80,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         LatLng sydney = new LatLng(lat, lng);
-        mGoogleMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+
+        if ( mFinishMarker != null )
+            mFinishMarker.remove();
+        mFinishMarker = mGoogleMap.addMarker(new MarkerOptions().position(sydney).title("Marker"));
         mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+
+    private void doMySearch(String query)
+    {
+        String url = "https://maps.googleapis.com/maps/api/geocode/json?address="
+                + query + "&key=AIzaSyC2lGEulxqVNmD45HnLSQ0rg05wq7qUZjc";
+        new RetrieveJsonTask().execute(new RetrieveJsonParam(url, this));
     }
 }
