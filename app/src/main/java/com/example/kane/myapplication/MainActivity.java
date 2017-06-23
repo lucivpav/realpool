@@ -28,6 +28,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mGoogleMap;
     private Marker mFinishMarker;
+    private double mFinishLat;
+    private double mFinishLon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +77,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
         mGoogleMap.setMyLocationEnabled(true);
+        mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                mFinishLat = latLng.latitude;
+                mFinishLon = latLng.longitude;
+                LatLng finish = new LatLng(latLng.latitude, latLng.longitude);
+                MarkerOptions markerOptions = new MarkerOptions().position(finish);
+                if(mFinishMarker != null) {
+                    mFinishMarker.remove();
+                }
+                mFinishMarker = mGoogleMap.addMarker(markerOptions);
+            }
+        });
     }
 
     public void jsonReceived(JSONObject object)
