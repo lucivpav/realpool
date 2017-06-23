@@ -32,9 +32,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mGoogleMap;
     private Marker mFinishMarker;
+
     private enum JsonTask {FindLocation, FindRoute};
     private JsonTask mJsonTask;
     private LatLng mCurPos;
+
+    private double mFinishLat;
+    private double mFinishLon;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,12 +88,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         mGoogleMap.setMyLocationEnabled(true);
 
+
         SingleShotLocationProvider.requestSingleUpdate(getApplicationContext(),
                 new SingleShotLocationProvider.LocationCallback() {
                     @Override public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
                         mCurPos = new LatLng(location.latitude, location.longitude);
                     }
                 });
+
+        mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                mFinishLat = latLng.latitude;
+                mFinishLon = latLng.longitude;
+                LatLng finish = new LatLng(latLng.latitude, latLng.longitude);
+                MarkerOptions markerOptions = new MarkerOptions().position(finish);
+                if(mFinishMarker != null) {
+                    mFinishMarker.remove();
+                }
+                mFinishMarker = mGoogleMap.addMarker(markerOptions);
+            }
+        });
+
     }
 
     public void jsonReceived(JSONObject object)
