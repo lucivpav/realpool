@@ -1,6 +1,7 @@
 package com.example.kane.myapplication;
 
-import android.app.Fragment;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -11,20 +12,24 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, JsonReceivedCommand {
 
     private GoogleMap mGoogleMap;
+    private Marker markerFinish;
+    private MarkerOptions markerOptionsFinish;
+
+    private double finishLat;
+    private double finishLon;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         MapFragment mapFragment = (MapFragment)getFragmentManager().findFragmentById(R.id.map_fragment);
         mapFragment.getMapAsync(this);
+
     }
 
     @Override
@@ -50,7 +56,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         String url = "https://maps.googleapis.com/maps/api/geocode/json?address="
                 + address + "&key=AIzaSyC2lGEulxqVNmD45HnLSQ0rg05wq7qUZjc";
         new RetrieveJsonTask().execute(new RetrieveJsonParam(url, this));
+
+
+        mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+
+            @Override
+            public void onMapClick(LatLng point) {
+                LatLng finish = new LatLng(point.latitude, point.longitude);
+                if(markerFinish == null){
+                    markerOptionsFinish = new MarkerOptions().position(finish);
+                    markerFinish = mGoogleMap.addMarker(markerOptionsFinish);
+                    finishLat = point.latitude;
+                    finishLon = point.longitude;
+                } else {
+                    markerFinish.remove();
+                    markerOptionsFinish = new MarkerOptions().position(finish);
+                    markerFinish = mGoogleMap.addMarker(markerOptionsFinish);
+                    finishLat = point.latitude;
+                    finishLon = point.longitude;
+                }
+
+            }
+        });
     }
+
 
     public void jsonReceived(JSONObject object)
     {
