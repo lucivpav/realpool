@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -20,7 +21,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -28,6 +32,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mGoogleMap;
     private Marker mFinishMarker;
+    private enum JsonTask {FindLocation, FindRoute};
+    private JsonTask mJsonTask;
+    private LatLng mCurPos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,9 +82,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
         mGoogleMap.setMyLocationEnabled(true);
+
+        SingleShotLocationProvider.requestSingleUpdate(getApplicationContext(),
+                new SingleShotLocationProvider.LocationCallback() {
+                    @Override public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
+                        mCurPos = new LatLng(location.latitude, location.longitude);
+                    }
+                });
     }
 
     public void jsonReceived(JSONObject object)
+    {
+        if ( mJsonTask == JsonTask.FindLocation )
+            setJsonLocation(object);
+        else if ( mJsonTask == JsonTask.FindRoute )
+            setJsonRoute(object);
+    }
+
+    private void doMySearch(String query)
+    {
+        String url = "https://maps.googleapis.com/maps/api/geocode/json?address="
+                + query + "&key=AIzaSyC2lGEulxqVNmD45HnLSQ0rg05wq7qUZjc";
+        mJsonTask = JsonTask.FindLocation;
+        new RetrieveJsonTask().execute(new RetrieveJsonParam(url, this));
+    }
+
+    private void setJsonLocation(JSONObject object)
     {
         double lat = 0, lng = 0;
 
@@ -89,18 +119,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             e.printStackTrace();
         }
 
-        LatLng sydney = new LatLng(lat, lng);
+        LatLng destination = new LatLng(lat, lng);
 
         if ( mFinishMarker != null )
             mFinishMarker.remove();
-        mFinishMarker = mGoogleMap.addMarker(new MarkerOptions().position(sydney).title("Marker"));
-        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        mFinishMarker = mGoogleMap.addMarker(new MarkerOptions().position(destination).title("Marker"));
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(destination));
+
+        // set route
+
+        /*String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
+                + mCurPos.latitude + "," + mCurPos.longitude
+                + "&destination=" + destination.latitude + "," + destination.longitude
+                + "&key=AIzaSyC2lGEulxqVNmD45HnLSQ0rg05wq7qUZjc";
+        mJsonTask = JsonTask.FindRoute;
+        new RetrieveJsonTask().execute(new RetrieveJsonParam(url, this));*/
     }
 
-    private void doMySearch(String query)
+    private void setJsonRoute(JSONObject object)
     {
-        String url = "https://maps.googleapis.com/maps/api/geocode/json?address="
-                + query + "&key=AIzaSyC2lGEulxqVNmD45HnLSQ0rg05wq7qUZjc";
-        new RetrieveJsonTask().execute(new RetrieveJsonParam(url, this));
+        try {
+            JSONArray steps = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs")
+                                           .getJSONObject(0).getJSONArray("steps");
+            PolylineOptions polylineOptions = new PolylineOptions().width(5).color(Color.RED);
+            for ( int i = 0 ; i < steps.length() ; i++ )
+            {
+                JSONObject startLocation = steps.getJSONObject(i).getJSONObject("start_location");
+                JSONObject endLocation = steps.getJSONObject(i).getJSONObject("end_location");
+                LatLng start = new LatLng(startLocation.getDouble("lat"), startLocation.getDouble("lng"));
+                LatLng end = new LatLng(endLocation.getDouble("lat"), endLocation.getDouble("lng"));
+                if ( i == 0 )
+                    polylineOptions.add(start);
+                polylineOptions.add(end);
+            }
+            Polyline line = mGoogleMap.addPolyline(polylineOptions);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }
