@@ -20,6 +20,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -248,7 +249,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         SingleShotLocationProvider.requestSingleUpdate(getApplicationContext(),
                 new SingleShotLocationProvider.LocationCallback() {
                     @Override public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
+                        Boolean prevPosWasNull = mCurPos == null;
                         mCurPos = new LatLng(location.latitude, location.longitude);
+                        if ( prevPosWasNull )
+                            mapZoomAtPosition(mCurPos);
                     }
                 });
 
@@ -301,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if ( mFinishMarker != null )
             mFinishMarker.remove();
         mFinishMarker = mGoogleMap.addMarker(new MarkerOptions().position(mDestination).title("Marker"));
-        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(mDestination));
+        mapZoomAtPosition(mDestination);
     }
 
     private void setupRoute()
@@ -331,8 +335,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 polylineOptions.add(end);
             }
             Polyline line = mGoogleMap.addPolyline(polylineOptions);
+            mapZoomAtPosition(mCurPos);
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    private void mapZoomAtPosition(LatLng position)
+    {
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(position)
+                .zoom(17).build();
+        mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 }
