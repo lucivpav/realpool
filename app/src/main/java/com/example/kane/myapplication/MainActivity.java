@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         params.setMargins(40,60,40,60);
 
         final TextView tx3 = new TextView(getApplicationContext());
-        tx3.setText("0 kč");
+        tx3.setText("30 kč");
         tx3.setTextSize(20);
         tx3.setTextColor(Color.parseColor("#FFFFFF"));
         tx3.setGravity(Gravity.CENTER);
@@ -272,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     e.printStackTrace();
                 }
                 RemoveViewsFromMenu();
-                ShowOffer("Pavel", BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.default_user), 2);
+                ShowOffer("Pavel", BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.pavel), 2);
             }
         });
         l2.addView(tx4);
@@ -318,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     {
         if ( mHitchhikerShown ) return;
         mHitchhikerShown = true;
-        Bitmap bitmap = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.default_user);
+        Bitmap bitmap = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.veronika);
         int review = 3;
         String user = "Verča";
 
@@ -330,7 +330,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         l1.setLayoutParams(params3);
         ImageView view = new ImageView(getApplicationContext());
         view.setImageBitmap(bitmap);
-        view.setImageResource(android.R.mipmap.sym_def_app_icon);
+        view.setImageResource(R.drawable.veronika);
         l1.addView(view);
 
         l2.setOrientation(LinearLayout.VERTICAL);
@@ -355,7 +355,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             tx6.setText(user);
         }
 
-        tx7.setText("");
+        tx7.setText("Hi~");
 
         tx6.setTextColor(Color.parseColor("#FFFFFF"));
         tx7.setTextColor(Color.parseColor("#FFFFFF"));
@@ -399,7 +399,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         l1.setLayoutParams(params3);
         ImageView view = new ImageView(getApplicationContext());
         view.setImageBitmap(bitmap);
-        view.setImageResource(android.R.mipmap.sym_def_app_icon);
+        view.setImageResource(R.drawable.pavel);
         l1.addView(view);
 
         l2.setOrientation(LinearLayout.VERTICAL);
