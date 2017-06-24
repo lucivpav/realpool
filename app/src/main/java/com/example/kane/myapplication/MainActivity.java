@@ -196,6 +196,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View view) {
                 RemoveViewsFromMenu();
+                //Debugging:
+                //ShowOffer("Karel", null, 3);
                 Waiting();
             }
         });
@@ -238,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         ll.addView(tx5, params);
     }
 
-    public void ShowOffer(String user, Bitmap bitmap, int review) {
+    public void ShowOffer(final String user, Bitmap bitmap, int review) {
 
         LinearLayout.LayoutParams params3 = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -293,12 +295,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             public void onSwipeLeft() {
                 Toast.makeText(MainActivity.this, "Accepted", Toast.LENGTH_SHORT).show();
+                ShowDriver(user);
             }
             public void onSwipeBottom() {
             }
 
         });
 
+    }
+
+    public void ShowDriver(String driver)  {
+        RemoveViewsFromMenu();
+        ll.removeAllViews();
+        TextView tx8 = new TextView(getApplicationContext());
+        tx8.setText("DRIVING WITH " + driver);
+        tx8.setTextSize(25);
+        tx8.setTextColor(Color.parseColor("#FFFFFF"));
+        tx8.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+        );
+        ll.addView(tx8, params);
     }
 
     @Override
