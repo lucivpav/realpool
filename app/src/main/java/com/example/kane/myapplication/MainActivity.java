@@ -265,9 +265,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View view) {
                 RemoveViewsFromMenu();
                 //Debugging:
-                Waiting("WAITING");
-                //RemoveViewsFromMenu();
-                //ShowOffer("Alex", BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.default_user), 3);
+                //Waiting("WAITING");
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                RemoveViewsFromMenu();
+                ShowOffer("Pavel", BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.default_user), 2);
             }
         });
         l2.addView(tx4);
