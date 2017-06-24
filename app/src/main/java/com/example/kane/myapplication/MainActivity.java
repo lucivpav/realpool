@@ -2,7 +2,10 @@ package com.example.kane.myapplication;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -10,12 +13,16 @@ import android.support.v7.widget.SearchView;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -25,6 +32,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private JsonTask mJsonTask;
     private LatLng mCurPos;
     private LatLng mDestination;
+    private FusedLocationProviderClient mFusedLocationClient;
 
 
     @Override
@@ -59,6 +68,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 1.0f
         );
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         ll = (LinearLayout) findViewById(R.id.id_main_ll);
 
@@ -185,7 +196,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View view) {
                 RemoveViewsFromMenu();
-                ll.removeAllViews();
                 Waiting();
             }
         });
@@ -228,6 +238,69 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         ll.addView(tx5, params);
     }
 
+    public void ShowOffer(String user, Bitmap bitmap, int review) {
+
+        LinearLayout.LayoutParams params3 = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                2.0f
+        );
+        l1.setLayoutParams(params3);
+        ImageView view = new ImageView(getApplicationContext());
+        //view.setImageBitmap(bitmap);
+        view.setImageResource(android.R.mipmap.sym_def_app_icon);
+        l1.addView(view);
+
+        l2.setOrientation(LinearLayout.VERTICAL);
+
+        TextView tx6 = new TextView(getApplicationContext());
+        TextView tx7 = new TextView(getApplicationContext());
+
+        LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                1.0f
+        );
+
+        if(review == 1) {
+            tx6.setText(user + "  *");
+        } else if (review == 2) {
+            tx6.setText(user + "  **");
+        } else  if(review == 3) {
+            tx6.setText(user + "  ***");
+        } else  {
+            Toast.makeText(getApplicationContext(),"Invalid review", Toast.LENGTH_SHORT).show();
+            tx6.setText(user);
+        }
+
+        tx7.setText("wants to pick you up");
+
+        tx6.setTextColor(Color.parseColor("#FFFFFF"));
+        tx7.setTextColor(Color.parseColor("#FFFFFF"));
+        tx6.setTextSize(22);
+        tx7.setTextSize(18);
+        tx6.setGravity(Gravity.BOTTOM);
+        tx7.setGravity(Gravity.LEFT);
+
+        l2.addView(tx6, params2);
+        l2.addView(tx7, params2);
+
+        ll.setOnTouchListener(new OnSwipeTouchListener(MainActivity.this) {
+            public void onSwipeTop() {
+            }
+            public void onSwipeRight() {
+                Toast.makeText(MainActivity.this, "Declined", Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeLeft() {
+                Toast.makeText(MainActivity.this, "Accepted", Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeBottom() {
+            }
+
+        });
+
+    }
+
     @Override
     public void onMapReady(GoogleMap map) {
         mGoogleMap = map;
@@ -243,14 +316,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         mGoogleMap.setMyLocationEnabled(true);
 
+//        mFusedLocationClient.getLastLocation()
+//                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+//                    @Override
+//                    public void onSuccess(Location location) {
+//                        // Got last known location. In some rare situations this can be null.
+//                        if (location != null) {
+//                            mCurPos = new LatLng(location.getLatitude(), location.getLongitude());
+//                        } else {
+//                            Toast.makeText(getApplicationContext(), "Unable to get location", Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//                });
 
-
-        SingleShotLocationProvider.requestSingleUpdate(getApplicationContext(),
-                new SingleShotLocationProvider.LocationCallback() {
-                    @Override public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
-                        mCurPos = new LatLng(location.latitude, location.longitude);
-                    }
-                });
+//        SingleShotLocationProvider.requestSingleUpdate(getApplicationContext(),
+//                new SingleShotLocationProvider.LocationCallback() {
+//                    @Override public void onNewLocationAvailable(SingleShotLocationProvider.GPSCoordinates location) {
+//                        mCurPos = new LatLng(location.latitude, location.longitude);
+//                    }
+//                });
 
 
         mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
