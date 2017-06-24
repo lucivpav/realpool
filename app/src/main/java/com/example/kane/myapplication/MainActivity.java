@@ -13,6 +13,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.View;
+import android.widget.Button;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -36,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private enum JsonTask {FindLocation, FindRoute};
     private JsonTask mJsonTask;
     private LatLng mCurPos;
+    private LatLng mDestination;
 
     private double mFinishLat;
     private double mFinishLon;
@@ -45,6 +48,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Button driveButton = (Button)findViewById(R.id.drive_button);
+        driveButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                setupRoute();
+            }
+        }
+        );
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map_fragment);
         mapFragment.getMapAsync(this);
@@ -140,21 +154,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             e.printStackTrace();
         }
 
-        LatLng destination = new LatLng(lat, lng);
+        mDestination = new LatLng(lat, lng);
 
         if ( mFinishMarker != null )
             mFinishMarker.remove();
-        mFinishMarker = mGoogleMap.addMarker(new MarkerOptions().position(destination).title("Marker"));
-        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(destination));
+        mFinishMarker = mGoogleMap.addMarker(new MarkerOptions().position(mDestination).title("Marker"));
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(mDestination));
+    }
 
-        // set route
-
-        /*String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
+    private void setupRoute()
+    {
+        String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
                 + mCurPos.latitude + "," + mCurPos.longitude
-                + "&destination=" + destination.latitude + "," + destination.longitude
+                + "&destination=" + mDestination.latitude + "," + mDestination.longitude
                 + "&key=AIzaSyC2lGEulxqVNmD45HnLSQ0rg05wq7qUZjc";
         mJsonTask = JsonTask.FindRoute;
-        new RetrieveJsonTask().execute(new RetrieveJsonParam(url, this));*/
+        new RetrieveJsonTask().execute(new RetrieveJsonParam(url, this));
     }
 
     private void setJsonRoute(JSONObject object)
