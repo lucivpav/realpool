@@ -31,6 +31,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -43,7 +44,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, JsonReceivedCommand {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, JsonReceivedCommand, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mGoogleMap;
     private Marker mFinishMarker;
@@ -53,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     LinearLayout l2;
     LinearLayout ll;
 
+
     Intent mServiceIntent;
 
     private enum JsonTask {FindLocation, FindRoute};
@@ -60,7 +62,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng mCurPos;
     private LatLng mDestination;
     private FusedLocationProviderClient mFusedLocationClient;
-
+    private Marker mHitchhikerMarker;
+    private boolean mHitchhikerShown = false;
+    private LatLng mHitchhikerPos;
+    private LatLng mHitchhikerDest;
+    private TextView mNavigatoinTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,15 +121,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         ll = (LinearLayout) findViewById(R.id.id_navigation_ll);
         ll.setVisibility(LinearLayout.VISIBLE);
-        TextView tx = new TextView(getApplicationContext());
-        tx.setText(Html.fromHtml(text));
-        tx.setTextSize(20);
-        tx.setLayoutParams(params);
-        tx.setTextColor(Color.parseColor("#FFFFFF"));
-        tx.setPadding(10,10,10,10);
-        tx.setGravity(Gravity.CENTER);
+        ll.removeView(mNavigatoinTextView);
+        mNavigatoinTextView = new TextView(getApplicationContext());
+        mNavigatoinTextView.setText(Html.fromHtml(text));
+        mNavigatoinTextView.setTextSize(20);
+        mNavigatoinTextView.setLayoutParams(params);
+        mNavigatoinTextView.setTextColor(Color.parseColor("#FFFFFF"));
+        mNavigatoinTextView.setPadding(10,10,10,10);
+        mNavigatoinTextView.setGravity(Gravity.CENTER);
 
-        ll.addView(tx);
+        ll.addView(mNavigatoinTextView);
     }
 
     public void SetUpMenu(){
@@ -139,6 +146,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 } else {
                     RemoveViewsFromMenu();
                     setupRoute();
+                    addHitchhiker();
+
                 }
             }
         });
@@ -165,6 +174,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void RemoveViewsFromMenu(){
         l1.removeAllViews();
         l2.removeAllViews();
+    }
+
+    private void addHitchhiker()
+    {
+        String title = "30 Kč";
+        mHitchhikerPos = new LatLng(50.0923, 14.4379);
+        mHitchhikerDest = new LatLng(50.1003, 14.4480);
+        mGoogleMap.setOnMarkerClickListener(this);
+        mHitchhikerMarker = mGoogleMap.addMarker(new MarkerOptions().title(title).position(mHitchhikerPos)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        mHitchhikerMarker.showInfoWindow();
+
+
+    }
+
+    @Override
+    public boolean onMarkerClick(final Marker marker)
+    {
+        if (mHitchhikerMarker == null || !marker.equals(mHitchhikerMarker)) return true;
+        ShowHitchhiker();
+        return true;
     }
 
     public void SetUpHopOn(){
@@ -234,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View view) {
                 RemoveViewsFromMenu();
                 //Debugging:
-                //Waiting();
+                //Waiting("WAITING");
                 ShowOffer("Alex", BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.default_user), 3);
             }
         });
@@ -264,9 +294,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return true;
     }
 
-    public void Waiting() {
+    public void Waiting(String prompt) {
         TextView tx5 = new TextView(getApplicationContext());
-        tx5.setText("WAITING");
+        tx5.setText(prompt);
         tx5.setTextSize(30);
         tx5.setTextColor(Color.parseColor("#FFFFFF"));
         tx5.setGravity(Gravity.CENTER);
@@ -275,6 +305,77 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 LinearLayout.LayoutParams.MATCH_PARENT
         );
         ll.addView(tx5, params);
+    }
+
+    private void ShowHitchhiker()
+    {
+        if ( mHitchhikerShown ) return;
+        mHitchhikerShown = true;
+        Bitmap bitmap = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.default_user);
+        int review = 3;
+        String user = "Verča";
+
+        LinearLayout.LayoutParams params3 = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                2.0f
+        );
+        l1.setLayoutParams(params3);
+        ImageView view = new ImageView(getApplicationContext());
+        view.setImageBitmap(bitmap);
+        view.setImageResource(android.R.mipmap.sym_def_app_icon);
+        l1.addView(view);
+
+        l2.setOrientation(LinearLayout.VERTICAL);
+
+        TextView tx6 = new TextView(getApplicationContext());
+        TextView tx7 = new TextView(getApplicationContext());
+
+        LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                1.0f
+        );
+
+        if(review == 1) {
+            tx6.setText(user + "  *");
+        } else if (review == 2) {
+            tx6.setText(user + "  **");
+        } else  if(review == 3) {
+            tx6.setText(user + "  ***");
+        } else  {
+            Toast.makeText(getApplicationContext(),"Invalid review", Toast.LENGTH_SHORT).show();
+            tx6.setText(user);
+        }
+
+        tx7.setText("");
+
+        tx6.setTextColor(Color.parseColor("#FFFFFF"));
+        tx7.setTextColor(Color.parseColor("#FFFFFF"));
+        tx6.setTextSize(22);
+        tx7.setTextSize(18);
+        tx6.setGravity(Gravity.BOTTOM);
+        tx7.setGravity(Gravity.LEFT);
+
+        l2.addView(tx6, params2);
+        l2.addView(tx7, params2);
+
+        Button pickUp = new Button(getApplicationContext());
+        pickUp.setText("Pick Up");
+        l1.addView(pickUp);
+
+        pickUp.setOnClickListener(new View.OnClickListener() {
+                @Override
+            public void onClick(View view) {
+            RemoveViewsFromMenu();
+            SetupHitchhikerRoute();
+                   // Waiting("You are going with Verča");
+        }});
+    }
+
+    private void SetupHitchhikerRoute()
+    {
+        setupHitchhikerRoute();
     }
 
     public void ShowOffer(final String user, Bitmap bitmap, int review) {
@@ -441,6 +542,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
                 + mCurPos.latitude + "," + mCurPos.longitude
                 + "&destination=" + mDestination.latitude + "," + mDestination.longitude
+                + "&key=AIzaSyC2lGEulxqVNmD45HnLSQ0rg05wq7qUZjc";
+        mJsonTask = JsonTask.FindRoute;
+        new RetrieveJsonTask().execute(new RetrieveJsonParam(url, this));
+    }
+
+    private void setupHitchhikerRoute()
+    {
+        String url = "https://maps.googleapis.com/maps/api/directions/json?origin="
+                + mCurPos.latitude + "," + mCurPos.longitude
+                + "&destination=" + mDestination.latitude + "," + mDestination.longitude
+                + "&waypoints=" + mHitchhikerPos.latitude + "," + mHitchhikerPos.longitude
+                + "|" + mHitchhikerDest.latitude + "," + mHitchhikerDest.longitude
                 + "&key=AIzaSyC2lGEulxqVNmD45HnLSQ0rg05wq7qUZjc";
         mJsonTask = JsonTask.FindRoute;
         new RetrieveJsonTask().execute(new RetrieveJsonParam(url, this));
