@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng mHitchhikerPos;
     private LatLng mHitchhikerDest;
     private TextView mNavigatoinTextView;
+    private Polyline mPrevPolyline;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -562,23 +563,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void setJsonRoute(JSONObject object)
     {
         try {
-            JSONArray steps = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs")
-                                           .getJSONObject(0).getJSONArray("steps");
+            JSONArray legs = object.getJSONArray("routes").getJSONObject(0).getJSONArray("legs");
             PolylineOptions polylineOptions = new PolylineOptions().width(5).color(Color.RED);
-            for ( int i = 0 ; i < steps.length() ; i++ )
-            {
-                JSONObject startLocation = steps.getJSONObject(i).getJSONObject("start_location");
-                JSONObject endLocation = steps.getJSONObject(i).getJSONObject("end_location");
-                LatLng start = new LatLng(startLocation.getDouble("lat"), startLocation.getDouble("lng"));
-                LatLng end = new LatLng(endLocation.getDouble("lat"), endLocation.getDouble("lng"));
-                if ( i == 0 ) {
-                    polylineOptions.add(start);
-                    String instructions = steps.getJSONObject(i).getString("html_instructions");
-                    SetupNavigation(instructions);
+            for ( int j = 0 ; j < legs.length() ; j++ ) {
+                JSONArray steps = legs.getJSONObject(j).getJSONArray("steps");
+                for (int i = 0; i < steps.length(); i++) {
+                    JSONObject startLocation = steps.getJSONObject(i).getJSONObject("start_location");
+                    JSONObject endLocation = steps.getJSONObject(i).getJSONObject("end_location");
+                    LatLng start = new LatLng(startLocation.getDouble("lat"), startLocation.getDouble("lng"));
+                    LatLng end = new LatLng(endLocation.getDouble("lat"), endLocation.getDouble("lng"));
+                    if ( i == 0 )polylineOptions.add(start);
+                    if (i == 0 && j == 0) {
+
+                        String instructions = steps.getJSONObject(i).getString("html_instructions");
+                        SetupNavigation(instructions);
+                    }
+                    polylineOptions.add(end);
                 }
-                polylineOptions.add(end);
             }
-            Polyline line = mGoogleMap.addPolyline(polylineOptions);
+            if ( mPrevPolyline != null ) mPrevPolyline.remove();
+            mPrevPolyline = mGoogleMap.addPolyline(polylineOptions);
             mapZoomAtPosition(mCurPos);
 
         } catch (JSONException e) {
