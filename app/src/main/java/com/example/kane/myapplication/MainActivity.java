@@ -7,10 +7,12 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
+import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -75,9 +77,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         l2.setGravity(Gravity.CENTER);
         ll.addView(l2,params);
 
+        findViewById(R.id.id_navigation_ll).setVisibility(LinearLayout.GONE);
+
         SetUpMenu();
     }
 
+    private void SetupNavigation(String text)
+    {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                1.0f
+        );
+
+        ll = (LinearLayout) findViewById(R.id.id_navigation_ll);
+        ll.setVisibility(LinearLayout.VISIBLE);
+        TextView tx = new TextView(getApplicationContext());
+        tx.setText(Html.fromHtml(text));
+        tx.setTextSize(20);
+        tx.setLayoutParams(params);
+        tx.setTextColor(Color.parseColor("#FFFFFF"));
+        tx.setPadding(10,10,10,10);
+        tx.setGravity(Gravity.CENTER);
+
+        ll.addView(tx);
+    }
 
     public void SetUpMenu(){
         TextView tx1 = new TextView(getApplicationContext());
@@ -330,8 +354,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 JSONObject endLocation = steps.getJSONObject(i).getJSONObject("end_location");
                 LatLng start = new LatLng(startLocation.getDouble("lat"), startLocation.getDouble("lng"));
                 LatLng end = new LatLng(endLocation.getDouble("lat"), endLocation.getDouble("lng"));
-                if ( i == 0 )
+                if ( i == 0 ) {
                     polylineOptions.add(start);
+                    String instructions = steps.getJSONObject(i).getString("html_instructions");
+                    SetupNavigation(instructions);
+                }
                 polylineOptions.add(end);
             }
             Polyline line = mGoogleMap.addPolyline(polylineOptions);

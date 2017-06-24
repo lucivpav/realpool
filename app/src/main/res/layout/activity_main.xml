@@ -4,19 +4,26 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:weightSum="0">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:id="@+id/id_navigation_ll"
+        android:orientation="vertical"
+        android:background="@color/colorPrimary">
+    </LinearLayout>
     <fragment
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="top"
         android:layout_weight="1"
         class="com.google.android.gms.maps.MapFragment"
         android:id="@+id/map_fragment" />
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:orientation="horizontal"
+        android:layout_height="60dp"
     android:id="@+id/id_main_ll"
-    android:background="@color/colorPrimary"
-    android:weightSum="0"
-    android:layout_weight="7">
+    android:background="@color/colorPrimary">
     </LinearLayout>
+
 </LinearLayout>
