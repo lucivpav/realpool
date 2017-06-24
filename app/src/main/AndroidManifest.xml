@@ -38,11 +38,15 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <service
+                android:name=".RSSPullService"
+                android:exported="false"/>
 
             <meta-data
                 android:name="android.app.default_searchable"
                 android:value=".SearchActivity" />
         </activity>
+
     </application>
 
 </manifest>

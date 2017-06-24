@@ -1,8 +1,13 @@
 package com.example.kane.myapplication;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -11,13 +16,17 @@ import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -28,6 +37,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,10 +53,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     LinearLayout l2;
     LinearLayout ll;
 
+    Intent mServiceIntent;
+
     private enum JsonTask {FindLocation, FindRoute};
     private JsonTask mJsonTask;
     private LatLng mCurPos;
     private LatLng mDestination;
+    private FusedLocationProviderClient mFusedLocationClient;
 
 
     @Override
@@ -63,6 +76,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 1.0f
         );
 
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         ll = (LinearLayout) findViewById(R.id.id_main_ll);
 
         l1 = new LinearLayout(getApplicationContext());
@@ -77,9 +92,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         l2.setGravity(Gravity.CENTER);
         ll.addView(l2,params);
 
+
         findViewById(R.id.id_navigation_ll).setVisibility(LinearLayout.GONE);
 
+        mServiceIntent = new Intent(this, RSSPullService.class);
+        //mServiceIntent.setData(Uri.parse(dataUrl));
+
+        startService(mServiceIntent);
+
         SetUpMenu();
+
+
     }
 
     private void SetupNavigation(String text)
@@ -210,8 +233,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View view) {
                 RemoveViewsFromMenu();
-                ll.removeAllViews();
-                Waiting();
+                //Debugging:
+                //Waiting();
+                ShowOffer("Alex", BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.default_user), 3);
             }
         });
         l2.addView(tx4);
@@ -253,6 +277,85 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         ll.addView(tx5, params);
     }
 
+    public void ShowOffer(final String user, Bitmap bitmap, int review) {
+
+        LinearLayout.LayoutParams params3 = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                2.0f
+        );
+        l1.setLayoutParams(params3);
+        ImageView view = new ImageView(getApplicationContext());
+        view.setImageBitmap(bitmap);
+        view.setImageResource(android.R.mipmap.sym_def_app_icon);
+        l1.addView(view);
+
+        l2.setOrientation(LinearLayout.VERTICAL);
+
+        TextView tx6 = new TextView(getApplicationContext());
+        TextView tx7 = new TextView(getApplicationContext());
+
+        LinearLayout.LayoutParams params2 = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                1.0f
+        );
+
+        if(review == 1) {
+            tx6.setText(user + "  *");
+        } else if (review == 2) {
+            tx6.setText(user + "  **");
+        } else  if(review == 3) {
+            tx6.setText(user + "  ***");
+        } else  {
+            Toast.makeText(getApplicationContext(),"Invalid review", Toast.LENGTH_SHORT).show();
+            tx6.setText(user);
+        }
+
+        tx7.setText("wants to pick you up");
+
+        tx6.setTextColor(Color.parseColor("#FFFFFF"));
+        tx7.setTextColor(Color.parseColor("#FFFFFF"));
+        tx6.setTextSize(22);
+        tx7.setTextSize(18);
+        tx6.setGravity(Gravity.BOTTOM);
+        tx7.setGravity(Gravity.LEFT);
+
+        l2.addView(tx6, params2);
+        l2.addView(tx7, params2);
+
+        ll.setOnTouchListener(new OnSwipeTouchListener(MainActivity.this) {
+            public void onSwipeTop() {
+            }
+            public void onSwipeRight() {
+                Toast.makeText(MainActivity.this, "Declined", Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeLeft() {
+                Toast.makeText(MainActivity.this, "Accepted", Toast.LENGTH_SHORT).show();
+                ShowDriver(user);
+            }
+            public void onSwipeBottom() {
+            }
+
+        });
+
+    }
+
+    public void ShowDriver(String driver)  {
+        RemoveViewsFromMenu();
+        ll.removeAllViews();
+        TextView tx8 = new TextView(getApplicationContext());
+        tx8.setText("DRIVING WITH " + driver);
+        tx8.setTextSize(25);
+        tx8.setTextColor(Color.parseColor("#FFFFFF"));
+        tx8.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+        );
+        ll.addView(tx8, params);
+    }
+
     @Override
     public void onMapReady(GoogleMap map) {
         mGoogleMap = map;
@@ -279,6 +382,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             mapZoomAtPosition(mCurPos);
                     }
                 });
+
 
 
         mGoogleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
