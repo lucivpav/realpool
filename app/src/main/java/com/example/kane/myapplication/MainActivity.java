@@ -265,8 +265,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View view) {
                 RemoveViewsFromMenu();
                 //Debugging:
-                //Waiting("WAITING");
-                ShowOffer("Alex", BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.default_user), 3);
+                Waiting("WAITING");
+                //RemoveViewsFromMenu();
+                //ShowOffer("Alex", BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.default_user), 3);
             }
         });
         l2.addView(tx4);
@@ -361,17 +362,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         l2.addView(tx6, params2);
         l2.addView(tx7, params2);
 
-        Button pickUp = new Button(getApplicationContext());
-        pickUp.setText("Pick Up");
-        l1.addView(pickUp);
+        l2.setOnTouchListener(new OnSwipeTouchListener(MainActivity.this) {
+            public void onSwipeTop() {
+            }
+            public void onSwipeRight() {
+                Toast.makeText(MainActivity.this, "Declined", Toast.LENGTH_SHORT).show();
+            }
+            public void onSwipeLeft() {
+                Toast.makeText(MainActivity.this, "Accepted", Toast.LENGTH_SHORT).show();
+                RemoveViewsFromMenu();
+                SetupHitchhikerRoute();
+            }
+            public void onSwipeBottom() {
+            }
 
-        pickUp.setOnClickListener(new View.OnClickListener() {
-                @Override
-            public void onClick(View view) {
-            RemoveViewsFromMenu();
-            SetupHitchhikerRoute();
-                   // Waiting("You are going with Verča");
-        }});
+        });
     }
 
     private void SetupHitchhikerRoute()
